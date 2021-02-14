@@ -49,22 +49,25 @@ class PriceLadders:
 
   # Priceデータ出力
   def print_price(self):
+    delete = str.maketrans({'[':None, ']':None, '"':None})
     # BUY
     buy_data = buyOriginData.split(',')
-    buy_list = list(map(float, [s.translate(str.maketrans({'[':None, ']':None, '"':None})) for s in buy_data]))
+    buy_list = list(map(float, [s.translate(delete) for s in buy_data]))
     # SELL
     sell_data = sellOriginData.split(',')
-    sell_list = list(map(float, [s.translate(str.maketrans({'[':None, ']':None, '"':None})) for s in sell_data]))
+    sell_list = list(map(float, [s.translate(delete) for s in sell_data]))
     # フォーマット変換
     df = pd.DataFrame({ 'buyPrice':buy_list[0::2],
                         'buySize':buy_list[1::2],
                         'sellPrice':sell_list[0::2],
                         'sellSize':sell_list[1::2]})
     # 累積和を列に追加
-    df['buyCum'] = df['buySize'].cumsum()
-    df['sellCum'] = df['sellSize'].cumsum()
-    # ログ出力
-    self.logger.info('\n{}'.format(df[['buyPrice','buySize','buyCum','sellPrice','sellSize','sellCum']].head(15)))
+    df['buyCumsum'] = df['buySize'].cumsum()
+    df['sellCumsum'] = df['sellSize'].cumsum()
+    # price用ロガー
+    priceLogger = getLogger('priceLogger')
+    # 先頭から10行、json形式でログに出力
+    priceLogger.info(format(df[['buyPrice','buySize','buyCumsum','sellPrice','sellSize','sellCumsum']].head(10).to_json(orient='index')))
 
 # 定期的に実行する処理
 def interval_task():
